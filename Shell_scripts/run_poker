@@ -1,0 +1,10 @@
+
+sudo ./poker_deflate_LR ../GPS_data/Data/241_IIT1/2013/342/lowrate/
+sudo ./poker_deflate_LR ../GPS_data/Data/243_IIT3/2013/342/lowrate/
+
+
+
+sudo ./poker_deflate_LR ../GPS_data/Data/244_IIT11/2013/342/lowrate/
+
+
+sudo ./poker_deflate_LR ../GPS_data/Data/245_IIT15/2013/342/lowrate/

@@ -1,0 +1,5 @@
+These codes assume binflate and sbcclient are in the same folder.
+
+Follow the instructions in ../CASES_DeflateSoftware/readme_deflate_CASES.txt to generate these files and then copy them here.
+
+3 shell scripts are included for different file formats AAL-PIP, Calgary and PokerFlat CASES receivers.

@@ -1,0 +1,122 @@
+#bin/bash
+#Kshitija Deshpande, Jan 7, 2013. 
+#This script creates .log files from all .dat files in the given folder for a given day.
+#./cases-inp <folderpath>: e.g. ./cases-inp CASES_data/2013_01_03/
+
+ORIG_DIR=$(pwd)
+BaseDir=$(basename ${1})
+ echo $BaseDir
+
+dir=${1}
+cd $dir
+
+# binflate and sbcclient are expected in the original directory
+binf="binflate"
+sbccl="sbcclient"
+doyday="doy2yyyymmdd.sh"
+binflate="${ORIG_DIR}/./${binf}"
+sbcclient="${ORIG_DIR}/./${sbccl}"
+DOY2DAY="${ORIG_DIR}/./${doyday}"
+#echo $binflate
+#echo $sbcclient
+#echo $DOY2DAY
+
+# Start and end times and days
+BaseYDOY=`echo $BaseDir|sed 's/[\./]*grid\([0-9]\{3\}\)_\([0-9]\{4\}\)\([0-9]\{3\}\)_dataout.*/\2\3/'`
+#echo $BaseYDOY
+BaseYMD=(`$DOY2DAY "$BaseYDOY"`) #YYYYMMDD
+#echo $BaseYMD
+Year=`echo "$BaseYMD" | awk '{ print substr( $0, 0, 4 ) }'`
+#echo $Year
+MM=`echo "$BaseYMD" | awk '{ print substr( $0, 5, 2 ) }'`
+#echo $MM   
+DD=`echo "$BaseYMD" | awk '{ print substr( $0, 7, 2 ) }'`
+#echo $DD
+
+tzero="00:00:00"
+tend="23:59:59"
+day="$Year-$MM-$DD"
+input1="$day $tzero"
+input2="$day $tend"
+#echo $input1
+#echo $input2
+#input in the form now: "2012-01-26 00:00:00" "2012-01-26 23:59:59"
+START=`date -u -d "$input1" +%s`
+END=`date -u -d "$input2" +%s`
+#echo $START
+#echo $END
+
+#echo "FileTimes"
+
+
+#create stitched log files
+#rm -f *.bin
+rm -rf *.log
+
+for i in *.*; do
+  if echo $i | grep dataout > /dev/null; then
+    TIMEDOY=`echo $i|sed 's/[\./]*dataout_\([0-9]\{4\}\)_\([0-9]\{3\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\).*/\1 \2 \3:\4/'`
+#    echo $TIME
+    YYYYDOY=`echo $i|sed 's/[\./]*dataout_\([0-9]\{4\}\)_\([0-9]\{3\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\).*/\1\2/'`
+    #echo $YYYYDOY
+    YMD=(`$DOY2DAY "$YYYYDOY"`) #YYYYMMDD
+#    echo $YMD
+    Year=`echo "$YMD" | awk '{ print substr( $0, 0, 4 ) }'`
+    #echo $Year
+    MM=`echo "$YMD" | awk '{ print substr( $0, 5, 2 ) }'`
+    #echo $MM	
+    DD=`echo "$YMD" | awk '{ print substr( $0, 7, 2 ) }'`
+    #echo $DD
+    HHMM=`echo "$TIMEDOY" | tail -c 6`
+    min=`echo "$HHMM" | tail -c 3`
+    hour=`echo "$HHMM" | head -c 2`
+#    echo $hour
+#    echo $min    
+
+    TIME="$Year-$MM-$DD $hour:$min:00"
+    # echo $TIME
+    #time in the form now: "2012-01-26 00:00:00" "2012-01-26 23:59:59"
+    CUR=`date -u -d "$TIME" +%s`
+    #echo $CUR
+    if [[ "$START" -lt "$CUR" && "$CUR" -lt "$END" ]]; then
+      if echo $i | grep gz > /dev/null; then
+        gunzip -c $i > templ
+      else
+        cat $i > templ
+      fi
+#      $sbcclient -r -s temp -o dataout.bin -q dataoutiq.bin 2> /dev/null | grep Report
+	$binflate -i templ	
+      rm templ 
+    fi
+
+  elif echo $i | grep dataoutiq > /dev/null; then
+    TIMEDOY=`echo $i|sed 's/[\./]*dataoutiq_\([0-9]\{4\}\)_\([0-9]\{3\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\).*/\1 \2 \3:\4/'`
+    YYYYDOY=`echo $i|sed 's/[\./]*dataoutiq_\([0-9]\{4\}\)_\([0-9]\{3\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\).*/\1\2/'`
+    YMD=(`$DOY2DAY "$YYYYDOY"`) #YYYYMMDD
+    Year=`echo "$YMD" | awk '{ print substr( $0, 0, 4 ) }'`
+    MM=`echo "$YMD" | awk '{ print substr( $0, 5, 2 ) }'`
+    DD=`echo "$YMD" | awk '{ print substr( $0, 7, 2 ) }'`
+    HHMM=`echo "$TIMEDOY" | tail -c 6`
+    min=`echo "$HHMM" | tail -c 3`
+    hour=`echo "$HHMM" | head -c 2`
+
+    TIME="$Year-$MM-$DD $hour:$min:00"
+    #time in the form now: "2012-01-26 00:00:00" "2012-01-26 23:59:59"
+    CUR=`date -u -d "$TIME" +%s`
+    #echo $CUR
+    if [[ "$START" -lt "$CUR" && "$CUR" -lt "$END" ]]; then
+      if echo $i | grep gz > /dev/null; then
+        gunzip -c $i > tempiq
+      else
+        cat $i > tempiq
+      fi
+#      $sbcclient -r -s temp -o dataout.bin -q dataoutiq.bin 2> /dev/null | grep Report
+        $binflate -i tempiq 2> /dev/null | grep Report
+        rm tempiq
+    fi
+
+  fi
+done
+
+rm *.bin
+cd $ORIG_DIR

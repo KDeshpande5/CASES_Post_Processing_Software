@@ -1,0 +1,32 @@
+#!/bin/sh
+
+ORIG_DIR=$(pwd)
+BaseDir=$(basename ${1})
+echo $BaseDir
+
+dir=${1}
+cd $dir
+
+# binflate and sbcclient are expected in the original directory
+binf="binflate"
+sbccl="sbcclient"
+binflate="${ORIG_DIR}/./${binf}"
+sbcclient="${ORIG_DIR}/./${sbccl}"
+
+
+# rm dataout.bin; for i in dataout_*.bin; do cat $i >> dataout.bin; done
+  rm dataoutiq.bin; for i in dataoutiq_*.bin; do cat $i >> dataoutiq.bin; done
+
+for i in *.dat.gz;
+do
+#  echo $i
+  gunzip $i
+done
+
+ $binflate -i dataoutiq.bin
+
+#$binflate -i dataout.bin
+
+
+ rm dataoutiq.bin
+cd $ORIG_DIR 

@@ -1,0 +1,37 @@
+#bin/bash
+
+# For AAL-PIP CASES data
+
+#unzip first
+for i in *.dat.gz;
+do
+#  echo $i
+  gunzip $i
+done
+
+#create stitched log files
+rm -f *.bin
+START=`date -u -d "$1" +%s`
+END=`date -u -d "$2" +%s`
+for i in *.*; do
+  if echo $i | grep cases > /dev/null; then
+    TIME=`echo $i|sed 's/[\./]*cases_\([0-9]\{4\}\)_\([0-9]\{2\}\)_\([0-9]\{2\}\)_\([0-9]\{2\}\)_\([0-9]\{2\}\)_\([0-9]\{2\}\).*/\1-\2-\3 \4:\5:\6/'`
+    CUR=`date -u -d "$TIME" +%s`
+    if [[ "$START" -lt "$CUR" && "$CUR" -lt "$END" ]]; then
+      if echo $i | grep gz > /dev/null; then
+        gunzip -c $i > temp
+      else
+        cat $i > temp
+      fi
+      /home/aalpip/CASES_Data/./sbcclient -r -s temp -o dataout.bin -q dataoutiq.bin 2> /dev/null | grep Report
+    fi
+  fi
+done
+rm temp
+if [ -f dataout.bin ]; then
+  /home/aalpip/CASES_Data/./binflate -i dataout.bin
+fi
+if [ -f dataoutiq.bin ]; then
+  /home/aalpip/CASES_Data/./binflate -i dataoutiq.bin
+fi
+
