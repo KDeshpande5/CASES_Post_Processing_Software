@@ -273,6 +273,9 @@ for kk = 1:1:32,
                         fiqpowzphd = fiqpowz(zm_sts:zm_ende);
                         fiqphzphd = fiqphz(zm_sts:zm_ende);
                         
+                        %process only if considerable amount of data present
+                        if length(obstimezphd)>1000,
+                        
                         %Post processing goes here for the longer continuous
                         %lengths of data
                         % Polyfit subtraction
@@ -422,6 +425,8 @@ for kk = 1:1:32,
                         IQPOW = [IQPOW, fiqpowzphd'];
                         IQPH = [IQPH, fiqphzphd'];
 
+                        end% process only if considerable data present
+                        
                     end %for zoom: zmph of all phase segments
 
                 else %if no discontinutites in phase exist:
@@ -595,7 +600,11 @@ for kk = 1:1:32,
             save(filename,'data_PRN');
             strprn = strcat('FilteredData_PRN',num2str(kk),'.txt');
             filename = strcat(FiltDatadir,strprn);
-            csvwrite(filename,data_PRN');
+%             csvwrite(filename,data_PRN');
+            %Write with higher precision to capture time with 0.01s
+            %resolution.
+            dlmwrite(filename,data_PRN','Precision','%.10g',...
+                'delimiter',',');
             
             %Plot Carrier Phase
             figure('Visible','Off')
@@ -697,8 +706,8 @@ for kk = 1:1:32,
 %                 disp('orts')
 %                 disp(orts(indph))
                 
-                figure
-                plot(diff(diff(rawphase)))
+%                 figure
+%                 plot(diff(diff(rawphase)))
                 
                 for zmph = 1:1:length(indph)+1,
                     %for all the high rate data
@@ -895,8 +904,10 @@ for kk = 1:1:32,
                 save(filename,'data_PRN');
                 strprn = strcat('FilteredData_PRN',num2str(kk),'.txt');
                 filename = strcat(FiltDatadir,strprn);
-                csvwrite(filename,data_PRN');
-                
+%                 csvwrite(filename,data_PRN');
+                dlmwrite(filename,data_PRN','Precision','%.10g',...
+                    'delimiter',',');
+
                 %Plot Carrier Phase
                 figure('Visible','Off')
                 set(gca,'FontSize',fontsz)
@@ -1039,7 +1050,9 @@ for kk = 1:1:32,
                 save(filename,'data_PRN');
                 strprn = strcat('FilteredData_PRN',num2str(kk),'.txt');
                 filename = strcat(FiltDatadir,strprn);
-                csvwrite(filename,data_PRN');
+%                 csvwrite(filename,data_PRN');
+                dlmwrite(filename,data_PRN','Precision','%.10g',...
+                    'delimiter',',');
                 
                 %Plot Carrier Phase
                 figure('Visible','Off')
@@ -1401,6 +1414,7 @@ for kk = 1:1:32,
                         end % only consider greater than 60 seconds long data
 
                         end% process only if considerable data present
+                        
                     end %for zoom: zmph of all phase segments
 
                 else %if no discontinutites in phase exist:
@@ -2743,11 +2757,12 @@ for kk = 1:1:32,
                 
                 edgeT = 10; %edge time in seconds to be thrown out
                 edsamp = edgeT * fsamp;
-                obstimec = obstimec(edsamp+1:end-edsamp);
-                phjj = phjj(edsamp+1:end-edsamp);
-                phkk = phkk(edsamp+1:end-edsamp);
-                powjj = powjj(edsamp+1:end-edsamp);
-                powkk = powkk(edsamp+1:end-edsamp);
+                Lobs = length(obstimec);
+                obstimec = obstimec(edsamp+1:Lobs-edsamp);
+                phjj = phjj(edsamp+1:Lobs-edsamp);
+                phkk = phkk(edsamp+1:Lobs-edsamp);
+                powjj = powjj(edsamp+1:Lobs-edsamp);
+                powkk = powkk(edsamp+1:Lobs-edsamp);
                 
                 %plot common power
                 figure('Visible','Off')

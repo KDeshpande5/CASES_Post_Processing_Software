@@ -85,6 +85,10 @@ end
 % command = strcat('mkdir',{' '},folder_name,'plots_',signal,sep,...
 %     'HighRate_ScintAll',sep);
 % system(cell2mat(command));
+
+command = strcat('rm -rf',{' '},folder_name,'PRN_files_',signal);
+system(cell2mat(command));
+
 command = strcat('mkdir',{' '},folder_name,'PRN_files_',signal);
 system(cell2mat(command));
 % outdir = strcat(folder_name,'plots_',signal,sep,'HighRate_ScintAll',sep);
